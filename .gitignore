@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.idea/
+.vscode/
+# data and run outputs are large; keep the folders, not the contents
+data/*
+!data/.gitkeep
+runs/*
+!runs/.gitkeep
+*.jpg
+*.png
+!docs/*.png
+hf_cache/

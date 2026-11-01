@@ -1,0 +1,15 @@
+# Install PyTorch FIRST from the CUDA index (see README), then: pip install -r requirements.txt
+transformers>=4.57.0
+accelerate>=1.0.0
+peft>=0.14.0
+datasets>=3.0.0
+pillow>=10.0
+tqdm
+numpy
+packaging
+sentencepiece
+tiktoken
+# 4-bit experiments (official wheels exist for Windows since 0.43)
+bitsandbytes>=0.45.0
+# tests
+pytest
