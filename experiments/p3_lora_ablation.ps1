@@ -6,7 +6,7 @@ $M = "Qwen/Qwen3-VL-4B-Instruct"          # 4B trains comfortably on 32 GB; 8B a
 $TRAIN = "data/dior_rsvg/train.jsonl"
 $TEST  = "data/dior_rsvg/test.jsonl"
 $INDOMAIN = "data/refcoco/val.jsonl"     # forgetting check
-$PX = 602112                              # 768 patches of 28x28 - keeps sequence length moderate
+$PX = 655360                              # >= 800*800 so DIOR images stay at native resolution (625 visual tokens)
 
 # baseline (zero-shot) on the target domain
 python scripts/eval_grounding.py --model $M --dataset $TEST --limit 500 --batch-size 2 --max-pixels $PX `

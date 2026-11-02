@@ -12,6 +12,19 @@ foreach ($px in @(200704, 401408, 802816, 1605632)) {      # 256, 512, 1024, 204
     --max-pixels $px --out "runs/p2_pixels_$px" --resume --tag "p2 max_pixels=$px"
 }
 
+# 1b) same sweep on DIOR-RSVG (800x800, many small targets). Native resolution is
+#     640k pixels; --min-pixels forces UPSCALING so the model sees more tokens per object.
+$DD = "data/dior_rsvg/test.jsonl"
+$M4 = "Qwen/Qwen3-VL-4B-Instruct"
+python scripts/eval_grounding.py --model $M4 --dataset $DD --limit $N --batch-size 4 --max-pixels 200704 `
+  --out "runs/p2_dior_px_down448" --resume --tag "p2 dior max_pixels=448^2"
+python scripts/eval_grounding.py --model $M4 --dataset $DD --limit $N --batch-size 4 `
+  --out "runs/p2_dior_px_native800" --resume --tag "p2 dior native"
+python scripts/eval_grounding.py --model $M4 --dataset $DD --limit $N --batch-size 2 --min-pixels 1048576 `
+  --out "runs/p2_dior_px_up1024" --resume --tag "p2 dior min_pixels=1024^2"
+python scripts/eval_grounding.py --model $M4 --dataset $DD --limit $N --batch-size 2 --min-pixels 1638400 `
+  --out "runs/p2_dior_px_up1280" --resume --tag "p2 dior min_pixels=1280^2"
+
 # 2) decoding
 foreach ($t in @(0.0, 0.3, 0.7, 1.0)) {
   python scripts/eval_grounding.py --model $M --dataset $D --limit $N --batch-size 2 `
