@@ -114,6 +114,12 @@ def main():
                 except Exception as e:  # keep going, record the failure
                     log.exception("generation failed for batch starting at %s: %s", batch[0].id, e)
                     results = None
+                if i == 0 and results is not None:
+                    s0, r0 = batch[0], results[0]
+                    log.info("first sample: original (H,W)=(%d,%d) -> model input (H,W)=%s  [%d visual patches of %dpx]",
+                             s0.height, s0.width, tuple(r0.input_hw),
+                             (r0.input_hw[0] // grounder.patch) * (r0.input_hw[1] // grounder.patch), grounder.patch)
+                    log.info("first raw output: %s", r0.text[:300].replace("\n", " "))
                 for j, s in enumerate(batch):
                     if results is None:
                         rec = {"id": s.id, "raw_text": "", "input_hw": [s.height, s.width],
@@ -173,11 +179,24 @@ def main():
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
     summary = summarize(recs)
+    px = sorted(r["input_hw"][0] * r["input_hw"][1] for r in recs if r.get("input_hw"))
+    input_stats = None
+    if px:
+        input_stats = {"min_pixels": px[0], "median_pixels": px[len(px) // 2], "max_pixels": px[-1],
+                       "median_hw": next(r["input_hw"] for r in recs
+                                         if r["input_hw"][0] * r["input_hw"][1] == px[len(px) // 2])}
+    try:
+        import transformers
+
+        tf_version = transformers.__version__
+    except Exception:  # noqa: BLE001
+        tf_version = None
     metrics = {
         "args": vars(args),
         "model": args.model, "adapter": args.adapter, "family": family,
         "coord_mode": mode, "calibration": calib,
         "max_new_tokens": max_new, "thinking": is_thinking,
+        "model_input": input_stats, "transformers_version": tf_version,
         "summary": summary,
         "finished_at": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
@@ -185,6 +204,9 @@ def main():
 
     print("\n==== " + args.out + " ====")
     print(f"model={args.model} adapter={args.adapter} dataset={args.dataset} split={args.split} n={summary['n']}")
+    if input_stats:
+        print(f"model input: median (H,W)={tuple(input_stats['median_hw'])}  pixels min/median/max="
+              f"{input_stats['min_pixels']}/{input_stats['median_pixels']}/{input_stats['max_pixels']}")
     print(f"coord_mode={mode}  Acc@0.5={summary['acc@0.5']:.4f}  Acc@0.75={summary['acc@0.75']:.4f}  "
           f"mIoU={summary['mean_iou']:.4f}  parse_fail={summary['parse_fail_rate']:.4f}  "
           f"sec/sample={summary['sec_per_sample'] if summary['sec_per_sample'] is None else round(summary['sec_per_sample'], 3)}")

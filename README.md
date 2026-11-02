@@ -31,8 +31,10 @@ setx HF_HOME "D:\hf_cache"      # 新开终端生效
 # 下载慢时可选: setx HF_ENDPOINT "https://hf-mirror.com"
 ```
 
-Qwen3-VL 需要 `transformers>=4.57`；Qwen3.5 系列可能需要更新的版本（`pip install -U transformers`）。
+Qwen3-VL 需要 `transformers>=4.57`；Qwen3.5 系列需要 5.x。代码对 4.57 和 5.x 都做了兼容
+（训练参数按版本过滤，分辨率通过显式 `size=` 参数传入）。
 `grounding/models.py` 会依次尝试 `AutoModelForImageTextToText` / `AutoModelForMultimodalLM` 等类，哪个能加载用哪个。
+用 `pip show transformers` 看版本，`metrics.json` 里也会记录 `transformers_version`。
 
 ## 2. 三步验证安装
 
@@ -50,6 +52,15 @@ python scripts/demo_single.py --model Qwen/Qwen3-VL-4B-Instruct --image data/toy
 ```
 
 脚本会打印原始输出，以及同一个框在三种坐标约定下的像素位置；打开 `runs/demo.jpg` 看红框是否框对。
+
+分辨率参数是否生效也要验证一次（不需要 GPU，几秒钟）：
+
+```powershell
+python scripts/check_pixels.py --model Qwen/Qwen3-VL-4B-Instruct --image data/toy/images/0000.jpg --max-pixels 200704
+python scripts/check_pixels.py --model Qwen/Qwen3-VL-4B-Instruct --image data/toy/images/0000.jpg --min-pixels 1638400
+```
+
+输出的 "through the full processor" 一行应分别变成约 448×448 和 1280×1280。评测日志也会打印第一个样本的 "model input (H,W)"，`metrics.json` 里有 `model_input` 统计，`summarize.py` 的表里有 `input_hw` 列——任何时候都能确认模型实际看到的分辨率。
 三种约定：`relative_1000`（Qwen2-VL / Qwen3-VL / Qwen3.5：0–1000 归一化）、`absolute_input`（Qwen2.5-VL：相对于处理器缩放后的输入图的绝对像素）、`absolute_original`。
 评测脚本默认 `--coord-mode auto`：在前 32 个样本上三种约定都算一遍，取平均 IoU 最高的那种，并把校准结果写进 `metrics.json`。
 

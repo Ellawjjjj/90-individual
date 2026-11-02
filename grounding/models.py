@@ -51,29 +51,89 @@ def _dtype_kwargs(dtype):
     return {"torch_dtype": dtype}
 
 
-def set_pixel_budget(processor, min_pixels: Optional[int] = None, max_pixels: Optional[int] = None):
-    """Control the dynamic-resolution token budget of Qwen-style image processors."""
+def _size_field(obj, *names) -> Optional[int]:
+    """Read shortest_edge / longest_edge from a dict or a SizeDict-like object."""
+    if obj is None:
+        return None
+    for n in names:
+        if isinstance(obj, dict):
+            if obj.get(n) is not None:
+                return int(obj[n])
+        else:
+            v = getattr(obj, n, None)
+            if v is not None:
+                return int(v)
+    return None
+
+
+def current_pixel_budget(processor) -> Tuple[Optional[int], Optional[int]]:
+    """(min_pixels, max_pixels) the image processor currently uses, if discoverable."""
     ip = getattr(processor, "image_processor", None)
     if ip is None:
-        return
-    for key, val in (("min_pixels", min_pixels), ("max_pixels", max_pixels)):
-        if val is None:
-            continue
-        if hasattr(ip, key):
-            try:
-                setattr(ip, key, int(val))
-            except Exception:
-                pass
-        size = getattr(ip, "size", None)
-        if isinstance(size, dict):
-            if key == "min_pixels":
-                for k in ("shortest_edge", "min_pixels"):
-                    if k in size:
-                        size[k] = int(val)
-            else:
-                for k in ("longest_edge", "max_pixels"):
-                    if k in size:
-                        size[k] = int(val)
+        return None, None
+    size = getattr(ip, "size", None)
+    lo = _size_field(size, "shortest_edge", "min_pixels")
+    hi = _size_field(size, "longest_edge", "max_pixels")
+    if lo is None:
+        v = getattr(ip, "min_pixels", None)
+        lo = int(v) if isinstance(v, (int, float)) else None
+    if hi is None:
+        v = getattr(ip, "max_pixels", None)
+        hi = int(v) if isinstance(v, (int, float)) else None
+    return lo, hi
+
+
+IMAGE_KWARGS_ATTR = "_grounding_image_kwargs"
+
+
+def set_pixel_budget(processor, min_pixels: Optional[int] = None, max_pixels: Optional[int] = None) -> Dict[str, int]:
+    """Control the dynamic-resolution token budget of Qwen-style image processors.
+
+    Mutating processor attributes is not reliable across transformers versions, so the
+    resolved budget is ALSO stored on the processor and passed explicitly as
+    `min_pixels=... max_pixels=...` on every processor call (see `image_kwargs_of`).
+    Returns the kwargs dict ({} when nothing was requested).
+    """
+    kwargs: Dict[str, int] = {}
+    ip = getattr(processor, "image_processor", None)
+    if ip is None or (min_pixels is None and max_pixels is None):
+        setattr(processor, IMAGE_KWARGS_ATTR, kwargs)
+        return kwargs
+    cur_lo, cur_hi = current_pixel_budget(processor)
+    lo = int(min_pixels) if min_pixels is not None else cur_lo
+    hi = int(max_pixels) if max_pixels is not None else cur_hi
+    if lo is not None and hi is not None and lo > hi:
+        # user asked to upscale beyond the current ceiling (or downscale below the floor)
+        if min_pixels is not None and max_pixels is None:
+            hi = lo
+        elif max_pixels is not None and min_pixels is None:
+            lo = hi
+    if lo is None or hi is None:
+        # could not discover the other bound; fall back to Qwen defaults
+        lo = lo if lo is not None else 4 * 28 * 28
+        hi = hi if hi is not None else 16384 * 28 * 28
+    # `size` is the canonical image-processor kwarg in both transformers 4.x and 5.x;
+    # Qwen2-VL-style processors read shortest_edge/longest_edge as min/max pixels.
+    kwargs["size"] = {"shortest_edge": int(lo), "longest_edge": int(hi)}
+    # best-effort attribute update too (sufficient on transformers 4.5x)
+    try:
+        if isinstance(getattr(ip, "size", None), dict):
+            ip.size.update(kwargs["size"])
+        else:
+            ip.size = dict(kwargs["size"])
+        ip.min_pixels = int(lo)
+        ip.max_pixels = int(hi)
+    except Exception:
+        pass
+    setattr(processor, IMAGE_KWARGS_ATTR, kwargs)
+    log.info("pixel budget: min_pixels=%s max_pixels=%s (processor default was %s/%s)", lo, hi, cur_lo, cur_hi)
+    return kwargs
+
+
+def image_kwargs_of(processor) -> Dict[str, Any]:
+    """Explicit image kwargs to pass on every processor call (empty if not configured)."""
+    kw = getattr(processor, IMAGE_KWARGS_ATTR, None) or {}
+    return {k: (dict(v) if isinstance(v, dict) else v) for k, v in kw.items()}
 
 
 def patch_size_of(processor) -> int:
@@ -198,6 +258,7 @@ class Grounder:
         self.processor = processor
         self.family = family
         self.patch = patch_size_of(processor)
+        self.image_kwargs = image_kwargs_of(processor)
         tok = getattr(processor, "tokenizer", None)
         if tok is not None:
             tok.padding_side = "left"
@@ -226,7 +287,8 @@ class Grounder:
 
         assert len(images) == len(prompts)
         texts = [self._chat_text(p, cfg.enable_thinking) for p in prompts]
-        inputs = self.processor(text=texts, images=list(images), padding=True, return_tensors="pt")
+        inputs = self.processor(text=texts, images=list(images), padding=True, return_tensors="pt",
+                                **self.image_kwargs)
         inputs = inputs.to(self.model.device)
         in_len = inputs["input_ids"].shape[1]
         t0 = time.perf_counter()

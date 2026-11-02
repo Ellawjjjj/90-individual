@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import random
 import sys
 from pathlib import Path
@@ -86,7 +87,9 @@ class GroundingDataset(torch.utils.data.Dataset):
         """Size after the processor's smart-resize (needed for absolute_input targets)."""
         if self.coord_mode != "absolute_input":
             return None
-        feats = self.processor.image_processor(images=[image], return_tensors="pt")
+        from grounding.models import image_kwargs_of
+
+        feats = self.processor.image_processor(images=[image], return_tensors="pt", **image_kwargs_of(self.processor))
         g = feats["image_grid_thw"][0].tolist()
         return int(g[-2]) * self.patch, int(g[-1]) * self.patch
 
@@ -133,7 +136,10 @@ class Collator:
             texts.append(full_text)
             suffixes.append(suffix)
             images.append(ex["image"])
-        enc = self.processor(text=texts, images=images, padding=True, return_tensors="pt")
+        from grounding.models import image_kwargs_of
+
+        enc = self.processor(text=texts, images=images, padding=True, return_tensors="pt",
+                             **image_kwargs_of(self.processor))
         labels = enc["input_ids"].clone()
         attn = enc["attention_mask"]
         for i, suffix in enumerate(suffixes):
@@ -152,6 +158,7 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
+    import transformers
     from peft import LoraConfig, get_peft_model
     from transformers import Trainer, TrainingArguments
 
@@ -207,14 +214,20 @@ def main():
     log.info("example prompt: %s", ex["prompt"])
     log.info("example answer: %s", ex["answer"])
 
-    targs = TrainingArguments(
+    # integer warm-up steps work on every transformers version (warmup_ratio was removed in v5)
+    steps_per_epoch = math.ceil(len(ds) / (args.batch_size * args.grad_accum))
+    total_steps = args.max_steps if args.max_steps > 0 else math.ceil(steps_per_epoch * args.epochs)
+    warmup_steps = int(round(args.warmup_ratio * total_steps))
+    log.info("total optimisation steps=%d warmup=%d", total_steps, warmup_steps)
+
+    targ_kwargs = dict(
         output_dir=str(out / "trainer"),
         per_device_train_batch_size=args.batch_size,
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.lr,
         num_train_epochs=args.epochs,
         max_steps=args.max_steps,
-        warmup_ratio=args.warmup_ratio,
+        warmup_steps=warmup_steps,
         weight_decay=args.weight_decay,
         lr_scheduler_type="cosine",
         logging_steps=args.logging_steps,
@@ -225,9 +238,18 @@ def main():
         gradient_checkpointing_kwargs={"use_reentrant": False},
         dataloader_num_workers=0,  # Windows-safe
         remove_unused_columns=False,
-        report_to=[],
+        report_to="none",
         seed=args.seed,
     )
+    # drop anything this transformers version does not know (names change between majors)
+    supported = set(getattr(TrainingArguments, "__dataclass_fields__", {}).keys())
+    if supported:
+        dropped = [k for k in targ_kwargs if k not in supported]
+        if dropped:
+            log.warning("TrainingArguments on transformers %s does not accept %s; dropping",
+                        transformers.__version__, dropped)
+            targ_kwargs = {k: v for k, v in targ_kwargs.items() if k in supported}
+    targs = TrainingArguments(**targ_kwargs)
     trainer = Trainer(model=model, args=targs, train_dataset=ds, data_collator=collator)
     trainer.train()
 

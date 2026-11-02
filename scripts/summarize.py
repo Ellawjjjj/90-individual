@@ -16,8 +16,8 @@ from pathlib import Path
 from _common import ROOT, load_json  # noqa: E402
 
 COLS = ["run", "model", "adapter", "dataset", "split", "n", "acc@0.5", "acc@0.75", "mean_iou",
-        "parse_fail_rate", "sec_per_sample", "coord_mode", "thinking", "prompt", "max_pixels", "min_pixels",
-        "temperature", "max_new_tokens", "dtype", "tag"]
+        "parse_fail_rate", "sec_per_sample", "input_hw", "coord_mode", "thinking", "prompt", "max_pixels",
+        "min_pixels", "temperature", "max_new_tokens", "dtype", "tag"]
 
 
 def row_of(run_dir: Path):
@@ -28,6 +28,7 @@ def row_of(run_dir: Path):
         "dataset": a["dataset"], "split": a["split"], "n": s["n"],
         "acc@0.5": s["acc@0.5"], "acc@0.75": s["acc@0.75"], "mean_iou": s["mean_iou"],
         "parse_fail_rate": s["parse_fail_rate"], "sec_per_sample": s["sec_per_sample"],
+        "input_hw": "x".join(str(v) for v in (m.get("model_input") or {}).get("median_hw", [])) or "",
         "coord_mode": m["coord_mode"], "thinking": m.get("thinking"), "prompt": a.get("prompt"),
         "max_pixels": a.get("max_pixels"), "min_pixels": a.get("min_pixels"),
         "temperature": a.get("temperature"), "max_new_tokens": m.get("max_new_tokens"),
