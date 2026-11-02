@@ -115,14 +115,13 @@ def set_pixel_budget(processor, min_pixels: Optional[int] = None, max_pixels: Op
     # `size` is the canonical image-processor kwarg in both transformers 4.x and 5.x;
     # Qwen2-VL-style processors read shortest_edge/longest_edge as min/max pixels.
     kwargs["size"] = {"shortest_edge": int(lo), "longest_edge": int(hi)}
-    # best-effort attribute update too (sufficient on transformers 4.5x)
+    # best-effort default update too; min_pixels/max_pixels attributes are deliberately
+    # NOT touched (deprecated, removed in transformers 5.23)
     try:
         if isinstance(getattr(ip, "size", None), dict):
             ip.size.update(kwargs["size"])
         else:
             ip.size = dict(kwargs["size"])
-        ip.min_pixels = int(lo)
-        ip.max_pixels = int(hi)
     except Exception:
         pass
     setattr(processor, IMAGE_KWARGS_ATTR, kwargs)
