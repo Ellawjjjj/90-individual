@@ -45,7 +45,8 @@ def add_model_args(p: argparse.ArgumentParser, with_generation: bool = True):
     g = p.add_argument_group("model")
     g.add_argument("--model", required=True, help="HF id or local path, e.g. Qwen/Qwen3-VL-4B-Instruct")
     g.add_argument("--adapter", default=None, help="LoRA adapter directory (PEFT)")
-    g.add_argument("--merge-adapter", action="store_true")
+    g.add_argument("--no-merge-adapter", dest="merge_adapter", action="store_false",
+                   help="keep LoRA unmerged at inference (default merges into the base weights: ~40%% faster)")
     g.add_argument("--dtype", default="bf16", choices=["bf16", "fp16", "fp32", "4bit"])
     g.add_argument("--attn", default="sdpa", choices=["sdpa", "eager", "flash_attention_2"])
     g.add_argument("--min-pixels", type=int, default=None, help="e.g. 256*28*28=200704")

@@ -108,10 +108,12 @@ class GroundingDataset(torch.utils.data.Dataset):
 
 class Collator:
     def __init__(self, processor, enable_thinking):
+        from grounding.models import chat_template_kwargs
+
         self.processor = processor
         self.tok = processor.tokenizer
         self.tok.padding_side = "right"
-        self.kw = {} if enable_thinking is None else {"enable_thinking": enable_thinking}
+        self.kw = chat_template_kwargs(processor, enable_thinking)
 
     def _template(self, messages, add_generation_prompt):
         try:

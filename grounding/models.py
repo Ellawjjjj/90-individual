@@ -129,6 +129,24 @@ def set_pixel_budget(processor, min_pixels: Optional[int] = None, max_pixels: Op
     return kwargs
 
 
+def template_uses(processor, variable: str) -> bool:
+    """True if the processor's chat template references `variable` (e.g. enable_thinking).
+    Passing a kwarg the template does not use triggers warnings on transformers 5.x."""
+    tpl = getattr(processor, "chat_template", None)
+    if tpl is None:
+        tok = getattr(processor, "tokenizer", None)
+        tpl = getattr(tok, "chat_template", None)
+    if isinstance(tpl, dict):
+        tpl = "\n".join(str(v) for v in tpl.values())
+    return bool(tpl) and variable in str(tpl)
+
+
+def chat_template_kwargs(processor, enable_thinking: Optional[bool]) -> Dict[str, Any]:
+    if enable_thinking is None or not template_uses(processor, "enable_thinking"):
+        return {}
+    return {"enable_thinking": bool(enable_thinking)}
+
+
 def image_kwargs_of(processor) -> Dict[str, Any]:
     """Explicit image kwargs to pass on every processor call (empty if not configured)."""
     kw = getattr(processor, IMAGE_KWARGS_ATTR, None) or {}
@@ -264,9 +282,7 @@ class Grounder:
 
     def _chat_text(self, prompt: str, enable_thinking: Optional[bool]) -> str:
         messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]}]
-        kw: Dict[str, Any] = {}
-        if enable_thinking is not None:
-            kw["enable_thinking"] = bool(enable_thinking)
+        kw = chat_template_kwargs(self.processor, enable_thinking)
         try:
             return self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, **kw)
         except TypeError:
