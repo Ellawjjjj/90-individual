@@ -42,19 +42,31 @@ def parse_xml(path: Path):
     w = int(float(size.findtext("width"))) if size is not None else None
     h = int(float(size.findtext("height"))) if size is not None else None
     objs = []
+    # NOTE: every <object> is appended (expression may be None) so that the running
+    # index matches the official split files, which count *all* objects in order
+    # (RSVG-pytorch data_loader.py: `for member in root.findall('object'): ... count += 1`).
     for o in r.findall("object"):
         bb = o.find("bndbox")
-        if bb is None:
-            continue
-        box = [float(bb.findtext(k)) for k in ("xmin", "ymin", "xmax", "ymax")]
+        box = None
+        if bb is not None:
+            try:
+                box = [float(bb.findtext(k)) for k in ("xmin", "ymin", "xmax", "ymax")]
+            except (TypeError, ValueError):
+                box = None
+        elif len(o) > 2 and len(o[2]) >= 4:  # positional fallback used by the original loader
+            try:
+                box = [float(o[2][k].text) for k in range(4)]
+            except (TypeError, ValueError):
+                box = None
         desc = None
         for t in DESC_TAGS:
             desc = o.findtext(t)
-            if desc:
+            if desc and desc.strip():
                 break
-        if not desc:
-            continue
-        objs.append({"name": o.findtext("name"), "bbox": box, "expression": desc.strip()})
+        if not (desc and desc.strip()) and len(o) > 3 and o[3].text and o[3].text.strip():
+            desc = o[3].text  # original loader reads member[3].text
+        objs.append({"name": o.findtext("name"), "bbox": box,
+                     "expression": desc.strip() if desc and desc.strip() else None})
     return fname, w, h, objs
 
 
@@ -85,7 +97,15 @@ def main():
         for j, o in enumerate(objs):
             flat.append({"id": f"{x.stem}_{j}", "image": img_path, "expression": o["expression"],
                          "bbox": o["bbox"], "width": w, "height": h, "category": o["name"], "xml": x.stem})
-    print(f"parsed {len(flat)} expressions from {len(xmls)} annotation files")
+    n_valid = sum(1 for f in flat if f["expression"] and f["bbox"])
+    print(f"parsed {len(flat)} objects ({n_valid} with expression+box) from {len(xmls)} annotation files")
+    if n_valid == 0:
+        o = ET.parse(xmls[0]).getroot().find("object")
+        raise SystemExit("no expressions found; children of the first <object> are: "
+                         + str([c.tag for c in o] if o is not None else None))
+
+    def valid(rows):
+        return [r for r in rows if r["expression"] and r["bbox"]]
 
     splits = {}
     have_split_files = all((root / f"{s}.txt").exists() for s in ("train", "val", "test"))
@@ -100,10 +120,15 @@ def main():
                 else:
                     names.add(Path(t).stem)
             if idx:
-                splits[s] = [flat[i] for i in idx if 0 <= i < len(flat)]
+                bad = [i for i in idx if not (0 <= i < len(flat))]
+                if bad:
+                    print(f"WARNING: {len(bad)} indices in {s}.txt are out of range (max {len(flat)-1}); "
+                          "the XML ordering may differ from the official one")
+                splits[s] = valid([flat[i] for i in idx if 0 <= i < len(flat)])
             else:
-                splits[s] = [f for f in flat if f["xml"] in names]
-        print("split sizes from txt files:", {k: len(v) for k, v in splits.items()})
+                splits[s] = valid([f for f in flat if f["xml"] in names])
+        print("split sizes from txt files:", {k: len(v) for k, v in splits.items()},
+              "(official DIOR-RSVG: train 26991 / val 3829 / test 7500)")
         if sum(len(v) for v in splits.values()) == 0:
             have_split_files = False
     if not have_split_files:
@@ -113,8 +138,9 @@ def main():
         rng.shuffle(imgs)
         n = len(imgs)
         tr, va = set(imgs[: int(0.7 * n)]), set(imgs[int(0.7 * n): int(0.8 * n)])
-        splits = {"train": [f for f in flat if f["xml"] in tr], "val": [f for f in flat if f["xml"] in va],
-                  "test": [f for f in flat if f["xml"] not in tr and f["xml"] not in va]}
+        splits = {"train": valid([f for f in flat if f["xml"] in tr]),
+                  "val": valid([f for f in flat if f["xml"] in va]),
+                  "test": valid([f for f in flat if f["xml"] not in tr and f["xml"] not in va])}
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
