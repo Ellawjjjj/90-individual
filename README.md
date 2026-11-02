@@ -97,6 +97,8 @@ python scripts/check_pixels.py --model Qwen/Qwen3-VL-4B-Instruct --image data/to
 
 汇总表：`python scripts/summarize.py --glob "runs/p2_*" --out runs/summary_p2` 生成 Markdown + CSV，直接贴进报告。
 
+配对检验：同一批样本上的多个 run 用 `python scripts/compare_runs.py --base runs/A runs/B runs/C` 比较，输出 Acc 差值的 bootstrap 95% 置信区间、翻转样本数和 McNemar p 值。n=500 时单个 Acc 的标准误约 ±0.02，相差 3–5 个点的两组必须用这个看是否可靠。
+
 ### 常用参数
 
 ```
