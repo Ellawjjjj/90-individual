@@ -3,7 +3,7 @@
 $ErrorActionPreference = "Continue"
 New-Item -ItemType Directory -Force docs/figures | Out-Null
 
-function Vis($run, $args) { if (Test-Path "$run/predictions.jsonl") { python scripts/visualize.py --run $run @args } else { Write-Host "skip $run" } }
+function Vis($run, $extra) { if (Test-Path "$run/predictions.jsonl") { python scripts/visualize.py --run $run @extra } else { Write-Host "skip $run" } }
 
 # in-domain vs out-of-domain, best Instruct model
 Vis runs/p0_qwen3-vl-8b-instruct_refcoco_val @("--n-good", "8", "--n-bad", "16", "--save-individual")
