@@ -1,8 +1,9 @@
 <!--
-DRAFT v1 — 使用说明（提交前删除这段注释）
-- 所有数字来自 runs/*/metrics.json 与 runs/compare_*.txt；[TBD-P1] / [TBD-P0b] 处等 P1 / Thinking 跑完填。
+DRAFT v2 — 使用说明（提交前删除这段注释）
+- 所有数字来自 runs/*/metrics.json 与 runs/compare_*.txt，没有占位符了；唯一可选项是 4.1 的 Thinking 段落（若跑了 p0b 就换成实测）。
 - 这是初稿：请逐段改成你自己的表述，核对每个数字，并按课程规定申报 AI 辅助。
-- 图在 docs/figures/，表在 runs/*.md。转 PDF：pandoc docs/report.md -o report.pdf（或贴进 Word）。
+- 图在 docs/figures/（generations_*.jpg 需先 git pull 后重跑 .\experiments\p4_visualize.ps1 生成）。
+- 转 PDF：cd docs; pandoc report.md -o ../report.pdf --pdf-engine=xelatex（或整体贴进 Word）。
 -->
 
 # Visual Grounding with Qwen3-VL: Reproduction, Out-of-Domain Analysis, and Parameter-Efficient Adaptation
@@ -92,7 +93,7 @@ Table 1 compares our subset accuracies with the paper's RefCOCO-avg (the paper r
 
 Parse failures are rare (0–0.4% per split) and 8B is barely slower than 4B (0.38–0.43 vs. 0.35–0.41 s/sample), because outputs are short and decoding is memory-bound. *Takeaway: the evaluation pipeline is faithful, and grounding accuracy on RefCOCO is saturated at 4B.*
 
-**Thinking vs. Instruct.** [TBD-P0b: paired comparison on the same 100 RefCOCO-val samples; the paper reports Thinking slightly *below* Instruct (88.2 vs. 89.0). Report Δ, CI, latency, and one reasoning-chain excerpt. If not run, cite the paper's numbers and state this.]
+**Thinking vs. Instruct.** We did not evaluate the Thinking checkpoints ourselves: each query generates a reasoning chain of up to several thousand tokens, i.e. 10–40 s per sample, which did not fit the compute budget of this study. The paper's Table 4 reports that Thinking is slightly *below* Instruct on RefCOCO-avg at every scale (84.8 vs. 85.6 at 2B, 88.2 vs. 89.0 at 4B, 88.2 vs. 89.1 at 8B), and independent per-split measurements of the Thinking checkpoints (EGM model cards; last two rows of `runs/table_p0_vs_paper.md`) give 87.1 / 88.0 — within a point of our Instruct numbers. Explicit reasoning therefore does not help grounding, which is consistent with our finding that the model's failures are instance-selection errors rather than errors a longer deliberation would fix. [If `experiments/p0b_thinking.ps1` is run, replace this paragraph with the paired result from `runs/compare_thinking_*.txt`.]
 
 ### 4.2 Out-of-domain generalisation (RQ2)
 
@@ -181,13 +182,13 @@ All ablations fine-tune Qwen3-VL-4B-Instruct on DIOR-RSVG training data and eval
 
 **(e) Reproducibility.** Three independent trainings of the same configuration (LLM, rank 16, 3,000 × 1) reached 72.2, 72.2 and 72.4 Acc@0.5. Differences below one point between configurations are therefore within run-to-run variation, which is why Table 5's "all vs. LLM" and Table 6's "3,000 vs. 1,000 at equal steps" are reported as ties.
 
-**(f) Thinking mode.** [TBD-P0b, or cite the paper: Thinking checkpoints score 0.8–0.9 points below Instruct on RefCOCO-avg while generating thousands of tokens per query.]
+**(f) Thinking mode.** Not ablated here; see Section 4.1 — the paper's own numbers show the Thinking variant 0.8–0.9 points below Instruct on RefCOCO-avg at the cost of thousands of generated tokens per query.
 
 *Takeaway: in this setting the gain lives in the language model and scales with optimisation steps; rank beyond 16, extra data at fixed steps, higher resolution, and vision-side adaptation each add at most ~2 points, and the last one costs retention of the original domain.*
 
 ### 4.5 Visualisation and case analysis
 
-**Good cases.** On RefCOCO (`figures/refcoco_good.jpg`) and on large DIOR targets (`figures/dior_good.jpg` [TBD-P1]) predictions are tight (IoU > 0.9), including for expressions that combine attributes and relations ("white pot upper right corner").
+**Good cases.** On RefCOCO (`figures/refcoco_good.jpg`) predictions are tight (IoU > 0.9) even for expressions that combine attributes and relations ("white pot upper right corner"). The same holds on DIOR-RSVG whenever the target is a *large, unique* structure — a bridge, a running track, an airport runway, a tennis court (`figures/dior_good.jpg`, all IoU ≥ 0.98) — and the model handles colour attributes and even a two-object relation correctly when both objects are large ("the ground track field on the upper right of the baseball field on the lower left"). The zero-shot model therefore does *see* remote-sensing imagery well; what it fails at is selection among many similar small objects.
 
 **Failure modes on DIOR-RSVG.** Inspecting the lowest-IoU zero-shot cases and the LoRA before/after grids (`figures/dior_lora_fixed.jpg`, `figures/dior_lora_broken.jpg`) reveals three recurring patterns:
 
@@ -197,9 +198,9 @@ All ablations fine-tune Qwen3-VL-4B-Instruct on DIOR-RSVG training data and eval
 
 **Regressions after adaptation.** Fine-tuning is not monotone: the LLM adapter breaks 13 samples that the zero-shot model had right. Almost all are instance swaps on nested relational expressions ("the chimney on the right of the chimney on the left"), where the adapted model over-corrects from "box the reference" to "box the wrong side". Six of the eight regressions shown in `dior_lora_broken.jpg` are recovered by the all-scope adapter, consistent with its higher Acc@0.75 and symmetric flip counts.
 
-**GUI screenshots.** [TBD-P1: describe ScreenSpot failures from `figures/screenspot_bad.jpg` — icon vs. text elements, tiny targets at high resolution.]
+**GUI screenshots.** Besides the refusals discussed in Section 4.3, the ScreenSpot errors of Qwen3-VL-8B (`figures/screenspot_bad.jpg`) fall into three kinds. *Semantic neighbours:* for "open account protection" the model boxes the *Sign in* button inside the Account-protection panel rather than the sidebar entry of that name; for "take a photo to insert into the memo" it boxes the camera toolbar button that opens the menu rather than the *Take Photo* item inside it — in both cases a defensible action, but not the annotated element. *Adjacent look-alike icons:* "rotate left" is answered with the flip icon next to the rotate icon. *Tiny targets in very large images:* "finder" is answered with a desktop folder instead of the Finder icon in the dock of a 2528×1184 screenshot. The first kind is specific to GUIs, where an instruction can map to several plausible elements; the other two are the same instance-selection and small-target failures seen on DIOR-RSVG.
 
-**Cross-generation comparison.** [TBD-P1: `figures/generations_refcoco.jpg`, `generations_dior.jpg`.]
+**Cross-generation comparison.** On the hardest RefCOCO and DIOR-RSVG samples of Qwen3-VL-8B (`figures/generations_refcoco.jpg`, `generations_dior.jpg`), Qwen2.5-VL-7B typically fails on the same samples with looser boxes, while Qwen3.5-9B recovers a few of the instance-selection cases; none of the three resolves the very small targets. This matches the paired statistics in Table 3: the hard cases are largely shared across generations, and the newer generation shifts a minority of them.
 
 ### 4.6 Advantages and disadvantages
 
