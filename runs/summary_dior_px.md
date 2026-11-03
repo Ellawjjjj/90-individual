@@ -1,0 +1,5 @@
+| run | model | adapter | dataset | split | n | acc@0.5 | acc@0.75 | mean_iou | parse_fail_rate | sec_per_sample | input_hw | coord_mode | thinking | prompt | max_pixels | min_pixels | temperature | max_new_tokens | dtype | tag |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| p2_dior_px_down448 | Qwen/Qwen3-VL-4B-Instruct |  | data/dior_rsvg/test.jsonl | val | 500 | 0.5160 | 0.3260 | 0.4841 | 0.0000 | 0.3676 | 448x448 | relative_1000 | False | json | 200704 |  | 0.0000 | 128 | bf16 | p2 dior 448 |
+| p2_dior_px_up1024 | Qwen/Qwen3-VL-4B-Instruct |  | data/dior_rsvg/test.jsonl | val | 500 | 0.5700 | 0.3740 | 0.5217 | 0.0000 | 0.7607 | 1024x1024 | relative_1000 | False | json |  | 1048576 | 0.0000 | 128 | bf16 | p2 dior up1024 |
+| p2_dior_px_up1280 | Qwen/Qwen3-VL-4B-Instruct |  | data/dior_rsvg/test.jsonl | val | 500 | 0.5260 | 0.3700 | 0.5033 | 0.0000 | 0.8367 | 1280x1280 | relative_1000 | False | json |  | 1638400 | 0.0000 | 128 | bf16 | p2 dior up1280 |

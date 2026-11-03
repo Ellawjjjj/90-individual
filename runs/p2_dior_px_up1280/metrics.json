@@ -1,0 +1,119 @@
+{
+  "args": {
+    "dataset": "data/dior_rsvg/test.jsonl",
+    "split": "val",
+    "limit": 500,
+    "seed": 0,
+    "image_field": "image",
+    "expr_field": "answer",
+    "bbox_field": "bbox",
+    "bbox_format": null,
+    "expr_policy": "all",
+    "id_field": null,
+    "model": "Qwen/Qwen3-VL-4B-Instruct",
+    "adapter": null,
+    "merge_adapter": false,
+    "dtype": "bf16",
+    "attn": "sdpa",
+    "min_pixels": 1638400,
+    "max_pixels": null,
+    "trust_remote_code": false,
+    "prompt": "json",
+    "max_new_tokens": null,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "repetition_penalty": 1.0,
+    "enable_thinking": "auto",
+    "batch_size": 2,
+    "coord_mode": "auto",
+    "calib_n": 32,
+    "out": "runs/p2_dior_px_up1280",
+    "resume": true,
+    "tag": "p2 dior up1280"
+  },
+  "model": "Qwen/Qwen3-VL-4B-Instruct",
+  "adapter": null,
+  "family": "qwen3vl",
+  "coord_mode": "relative_1000",
+  "calibration": {
+    "n": 32,
+    "scores": {
+      "relative_1000": 0.648313918010639,
+      "absolute_input": 0.12403944962292675,
+      "absolute_original": 0.16997511325153183
+    },
+    "chosen": "relative_1000"
+  },
+  "max_new_tokens": 128,
+  "thinking": false,
+  "model_input": {
+    "min_pixels": 1638400,
+    "median_pixels": 1638400,
+    "max_pixels": 1638400,
+    "median_hw": [
+      1280,
+      1280
+    ]
+  },
+  "transformers_version": "5.22.1",
+  "summary": {
+    "n": 500,
+    "acc@0.5": 0.526,
+    "acc@0.75": 0.37,
+    "mean_iou": 0.5033445669211164,
+    "parse_fail_rate": 0.0,
+    "mean_iou_parsed_only": 0.5033445669211164,
+    "multi_box_rate": 0.008,
+    "sec_per_sample": 0.8366576062000822,
+    "buckets": {
+      "gt_area": {
+        "large": {
+          "n": 108,
+          "acc@0.5": 0.6759259259259259,
+          "mean_iou": 0.6581701068732625
+        },
+        "medium": {
+          "n": 169,
+          "acc@0.5": 0.5680473372781065,
+          "mean_iou": 0.5803500328253623
+        },
+        "small": {
+          "n": 223,
+          "acc@0.5": 0.42152466367713004,
+          "mean_iou": 0.3700033917971294
+        }
+      },
+      "expr_length": {
+        "long(>=8w)": {
+          "n": 156,
+          "acc@0.5": 0.42948717948717946,
+          "mean_iou": 0.42157371666968263
+        },
+        "medium(4-7w)": {
+          "n": 307,
+          "acc@0.5": 0.5635179153094463,
+          "mean_iou": 0.5374567639729955
+        },
+        "short(<=3w)": {
+          "n": 37,
+          "acc@0.5": 0.6216216216216216,
+          "mean_iou": 0.5650691113615778
+        }
+      },
+      "spatial_words": {
+        "no_spatial": {
+          "n": 114,
+          "acc@0.5": 0.6403508771929824,
+          "mean_iou": 0.592723395825111
+        },
+        "with_spatial": {
+          "n": 386,
+          "acc@0.5": 0.49222797927461137,
+          "mean_iou": 0.47694771071631
+        }
+      }
+    }
+  },
+  "finished_at": "2026-11-02 20:05:53"
+}

@@ -1,0 +1,4 @@
+run,model,adapter,dataset,split,n,acc@0.5,acc@0.75,mean_iou,parse_fail_rate,sec_per_sample,input_hw,coord_mode,thinking,prompt,max_pixels,min_pixels,temperature,max_new_tokens,dtype,tag
+p2_dior_px_down448,Qwen/Qwen3-VL-4B-Instruct,,data/dior_rsvg/test.jsonl,val,500,0.516,0.326,0.4841237336350307,0.0,0.36762820500019006,448x448,relative_1000,False,json,200704,,0.0,128,bf16,p2 dior 448
+p2_dior_px_up1024,Qwen/Qwen3-VL-4B-Instruct,,data/dior_rsvg/test.jsonl,val,500,0.57,0.374,0.5217294644059078,0.0,0.7607182045993395,1024x1024,relative_1000,False,json,,1048576,0.0,128,bf16,p2 dior up1024
+p2_dior_px_up1280,Qwen/Qwen3-VL-4B-Instruct,,data/dior_rsvg/test.jsonl,val,500,0.526,0.37,0.5033445669211164,0.0,0.8366576062000822,1280x1280,relative_1000,False,json,,1638400,0.0,128,bf16,p2 dior up1280
