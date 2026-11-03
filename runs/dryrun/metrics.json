@@ -1,0 +1,89 @@
+{
+  "args": {
+    "dataset": "data/toy/toy.jsonl",
+    "split": "val",
+    "limit": null,
+    "seed": 0,
+    "image_field": "image",
+    "expr_field": "answer",
+    "bbox_field": "bbox",
+    "bbox_format": null,
+    "expr_policy": "all",
+    "id_field": null,
+    "model": "fake",
+    "adapter": null,
+    "merge_adapter": false,
+    "dtype": "bf16",
+    "attn": "sdpa",
+    "min_pixels": null,
+    "max_pixels": null,
+    "trust_remote_code": false,
+    "prompt": "json",
+    "max_new_tokens": null,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "repetition_penalty": 1.0,
+    "enable_thinking": "auto",
+    "batch_size": 1,
+    "coord_mode": "auto",
+    "calib_n": 32,
+    "out": "runs/dryrun",
+    "resume": false,
+    "tag": ""
+  },
+  "model": "fake",
+  "adapter": null,
+  "family": "fake",
+  "coord_mode": "relative_1000",
+  "calibration": {
+    "n": 32,
+    "scores": {
+      "relative_1000": 0.022348678312981905,
+      "absolute_input": 0.012863093247007068,
+      "absolute_original": 0.012863093247007068
+    },
+    "chosen": "relative_1000"
+  },
+  "max_new_tokens": 128,
+  "thinking": false,
+  "summary": {
+    "n": 106,
+    "acc@0.5": 0.0,
+    "acc@0.75": 0.0,
+    "mean_iou": 0.027344735246806223,
+    "parse_fail_rate": 0.03773584905660377,
+    "mean_iou_parsed_only": 0.028417077805504506,
+    "multi_box_rate": 0.0,
+    "sec_per_sample": 0.0010000000000000007,
+    "buckets": {
+      "gt_area": {
+        "medium": {
+          "n": 85,
+          "acc@0.5": 0.0,
+          "mean_iou": 0.030817364793888632
+        },
+        "small": {
+          "n": 21,
+          "acc@0.5": 0.0,
+          "mean_iou": 0.013288853746710735
+        }
+      },
+      "expr_length": {
+        "short(<=3w)": {
+          "n": 106,
+          "acc@0.5": 0.0,
+          "mean_iou": 0.027344735246806223
+        }
+      },
+      "spatial_words": {
+        "no_spatial": {
+          "n": 106,
+          "acc@0.5": 0.0,
+          "mean_iou": 0.027344735246806223
+        }
+      }
+    }
+  },
+  "finished_at": "2026-11-02 09:54:46"
+}

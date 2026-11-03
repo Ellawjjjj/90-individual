@@ -1,0 +1,119 @@
+{
+  "args": {
+    "dataset": "data/dior_rsvg/test.jsonl",
+    "split": "val",
+    "limit": 500,
+    "seed": 0,
+    "image_field": "image",
+    "expr_field": "answer",
+    "bbox_field": "bbox",
+    "bbox_format": null,
+    "expr_policy": "all",
+    "id_field": null,
+    "model": "Qwen/Qwen3-VL-4B-Instruct",
+    "adapter": "runs/p3_lora_llm/adapter",
+    "merge_adapter": true,
+    "dtype": "bf16",
+    "attn": "sdpa",
+    "min_pixels": null,
+    "max_pixels": 655360,
+    "trust_remote_code": false,
+    "prompt": "json",
+    "max_new_tokens": null,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "repetition_penalty": 1.0,
+    "enable_thinking": "auto",
+    "batch_size": 2,
+    "coord_mode": "auto",
+    "calib_n": 32,
+    "out": "runs/p3_lora_llm_dior",
+    "resume": true,
+    "tag": "p3 scope=llm"
+  },
+  "model": "Qwen/Qwen3-VL-4B-Instruct",
+  "adapter": "runs/p3_lora_llm/adapter",
+  "family": "qwen3vl",
+  "coord_mode": "relative_1000",
+  "calibration": {
+    "n": 32,
+    "scores": {
+      "relative_1000": 0.704137881820234,
+      "absolute_input": 0.1390487474710407,
+      "absolute_original": 0.1390487474710407
+    },
+    "chosen": "relative_1000"
+  },
+  "max_new_tokens": 128,
+  "thinking": false,
+  "model_input": {
+    "min_pixels": 640000,
+    "median_pixels": 640000,
+    "max_pixels": 640000,
+    "median_hw": [
+      800,
+      800
+    ]
+  },
+  "transformers_version": "5.22.1",
+  "summary": {
+    "n": 500,
+    "acc@0.5": 0.722,
+    "acc@0.75": 0.568,
+    "mean_iou": 0.6446469598701179,
+    "parse_fail_rate": 0.0,
+    "mean_iou_parsed_only": 0.6446469598701179,
+    "multi_box_rate": 0.0,
+    "sec_per_sample": 0.6312410886002472,
+    "buckets": {
+      "gt_area": {
+        "large": {
+          "n": 108,
+          "acc@0.5": 0.9166666666666666,
+          "mean_iou": 0.822238232323438
+        },
+        "medium": {
+          "n": 169,
+          "acc@0.5": 0.8284023668639053,
+          "mean_iou": 0.7597514760728271
+        },
+        "small": {
+          "n": 223,
+          "acc@0.5": 0.547085201793722,
+          "mean_iou": 0.47140695689605333
+        }
+      },
+      "expr_length": {
+        "long(>=8w)": {
+          "n": 156,
+          "acc@0.5": 0.6153846153846154,
+          "mean_iou": 0.5554454971881382
+        },
+        "medium(4-7w)": {
+          "n": 307,
+          "acc@0.5": 0.7719869706840391,
+          "mean_iou": 0.691172947009985
+        },
+        "short(<=3w)": {
+          "n": 37,
+          "acc@0.5": 0.7567567567567568,
+          "mean_iou": 0.6346996659903762
+        }
+      },
+      "spatial_words": {
+        "no_spatial": {
+          "n": 114,
+          "acc@0.5": 0.7719298245614035,
+          "mean_iou": 0.6879966045969444
+        },
+        "with_spatial": {
+          "n": 386,
+          "acc@0.5": 0.7072538860103627,
+          "mean_iou": 0.6318442150544228
+        }
+      }
+    }
+  },
+  "finished_at": "2026-11-02 21:35:19"
+}

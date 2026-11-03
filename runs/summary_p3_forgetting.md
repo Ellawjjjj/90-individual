@@ -1,0 +1,5 @@
+| run | model | adapter | dataset | split | n | acc@0.5 | acc@0.75 | mean_iou | parse_fail_rate | sec_per_sample | input_hw | coord_mode | thinking | prompt | max_pixels | min_pixels | temperature | max_new_tokens | dtype | tag |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| p3_lora_all_refcoco | Qwen/Qwen3-VL-4B-Instruct | runs/p3_lora_all/adapter | data/refcoco/val.jsonl | val | 500 | 0.8820 | 0.7700 | 0.8089 | 0.0020 | 0.6534 | 448x640 | relative_1000 | False | json | 655360 |  | 0.0000 | 128 | bf16 | p3 forgetting scope=all |
+| p3_lora_llm_refcoco | Qwen/Qwen3-VL-4B-Instruct | runs/p3_lora_llm/adapter | data/refcoco/val.jsonl | val | 500 | 0.9020 | 0.7920 | 0.8220 | 0.0000 | 0.6286 | 448x640 | relative_1000 | False | json | 655360 |  | 0.0000 | 128 | bf16 | p3 forgetting scope=llm |
+| p3_lora_vision_refcoco | Qwen/Qwen3-VL-4B-Instruct | runs/p3_lora_vision/adapter | data/refcoco/val.jsonl | val | 500 | 0.9040 | 0.8200 | 0.8301 | 0.0000 | 0.6670 | 448x640 | relative_1000 | False | json | 655360 |  | 0.0000 | 128 | bf16 | p3 forgetting scope=vision |
