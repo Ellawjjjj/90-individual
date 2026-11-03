@@ -103,6 +103,7 @@ def main():
         n_fixed = sum(1 for r in recs if not r["hit"] and r["id"] in first and first[r["id"]]["hit"])
         n_broken = sum(1 for r in recs if r["hit"] and r["id"] in first and not first[r["id"]]["hit"])
         print(f"{run.name} -> {others[0][0]}: fixed={n_fixed} broken={n_broken} (showing select={args.select})")
+        tiles = []
         for r in chosen:
             s = samples[r["id"]]
             img = s.load_image()
