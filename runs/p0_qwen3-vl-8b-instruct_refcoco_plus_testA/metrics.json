@@ -1,0 +1,114 @@
+{
+  "args": {
+    "dataset": "data/refcoco_plus/testA.jsonl",
+    "split": "val",
+    "limit": 500,
+    "seed": 0,
+    "image_field": "image",
+    "expr_field": "answer",
+    "bbox_field": "bbox",
+    "bbox_format": null,
+    "expr_policy": "all",
+    "id_field": null,
+    "model": "Qwen/Qwen3-VL-8B-Instruct",
+    "adapter": null,
+    "merge_adapter": true,
+    "dtype": "bf16",
+    "attn": "sdpa",
+    "min_pixels": null,
+    "max_pixels": null,
+    "trust_remote_code": false,
+    "prompt": "json",
+    "max_new_tokens": null,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "repetition_penalty": 1.0,
+    "enable_thinking": "auto",
+    "batch_size": 4,
+    "coord_mode": "auto",
+    "calib_n": 32,
+    "out": "runs/p0_qwen3-vl-8b-instruct_refcoco_plus_testA",
+    "resume": true,
+    "tag": "p0"
+  },
+  "model": "Qwen/Qwen3-VL-8B-Instruct",
+  "adapter": null,
+  "family": "qwen3vl",
+  "coord_mode": "relative_1000",
+  "calibration": {
+    "n": 32,
+    "scores": {
+      "relative_1000": 0.8318054472342186,
+      "absolute_input": 0.1714973454174434,
+      "absolute_original": 0.1721848042942505
+    },
+    "chosen": "relative_1000"
+  },
+  "max_new_tokens": 128,
+  "thinking": false,
+  "model_input": {
+    "min_pixels": 143360,
+    "median_pixels": 286720,
+    "max_pixels": 409600,
+    "median_hw": [
+      448,
+      640
+    ]
+  },
+  "transformers_version": "5.22.1",
+  "summary": {
+    "n": 500,
+    "acc@0.5": 0.904,
+    "acc@0.75": 0.82,
+    "mean_iou": 0.8339300865808356,
+    "parse_fail_rate": 0.0,
+    "mean_iou_parsed_only": 0.8339300865808356,
+    "multi_box_rate": 0.002,
+    "sec_per_sample": 0.3720576564006042,
+    "buckets": {
+      "gt_area": {
+        "large": {
+          "n": 419,
+          "acc@0.5": 0.9069212410501193,
+          "mean_iou": 0.8419097045569498
+        },
+        "medium": {
+          "n": 81,
+          "acc@0.5": 0.8888888888888888,
+          "mean_iou": 0.7926528034698245
+        }
+      },
+      "expr_length": {
+        "long(>=8w)": {
+          "n": 17,
+          "acc@0.5": 0.7647058823529411,
+          "mean_iou": 0.7308105792860188
+        },
+        "medium(4-7w)": {
+          "n": 191,
+          "acc@0.5": 0.8691099476439791,
+          "mean_iou": 0.803096297213604
+        },
+        "short(<=3w)": {
+          "n": 292,
+          "acc@0.5": 0.934931506849315,
+          "mean_iou": 0.860102296831361
+        }
+      },
+      "spatial_words": {
+        "no_spatial": {
+          "n": 457,
+          "acc@0.5": 0.9080962800875274,
+          "mean_iou": 0.8391107396811034
+        },
+        "with_spatial": {
+          "n": 43,
+          "acc@0.5": 0.8604651162790697,
+          "mean_iou": 0.7788705873524008
+        }
+      }
+    }
+  },
+  "finished_at": "2026-11-03 19:02:04"
+}

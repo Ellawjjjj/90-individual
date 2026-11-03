@@ -1,0 +1,17 @@
+run,model,adapter,dataset,split,n,acc@0.5,acc@0.75,mean_iou,parse_fail_rate,sec_per_sample,input_hw,coord_mode,thinking,prompt,max_pixels,min_pixels,temperature,max_new_tokens,dtype,tag
+p0_qwen3-vl-4b-instruct_refcoco_plus_testA,Qwen/Qwen3-VL-4B-Instruct,,data/refcoco_plus/testA.jsonl,val,500,0.892,0.81,0.820127206444591,0.0,0.35462894140032586,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-4b-instruct_refcoco_plus_testB,Qwen/Qwen3-VL-4B-Instruct,,data/refcoco_plus/testB.jsonl,val,500,0.816,0.724,0.7474876819768186,0.0,0.37796562980045567,416x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-4b-instruct_refcoco_plus_val,Qwen/Qwen3-VL-4B-Instruct,,data/refcoco_plus/val.jsonl,val,500,0.842,0.752,0.7795757649357936,0.0,0.3968812369994121,480x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-4b-instruct_refcoco_testA,Qwen/Qwen3-VL-4B-Instruct,,data/refcoco/testA.jsonl,val,500,0.916,0.828,0.8444693280621659,0.002,0.38211136260000056,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-4b-instruct_refcoco_testB,Qwen/Qwen3-VL-4B-Instruct,,data/refcoco/testB.jsonl,val,500,0.884,0.792,0.8165933959001396,0.002,0.36839106020040346,416x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-4b-instruct_refcoco_val,Qwen/Qwen3-VL-4B-Instruct,,data/refcoco/val.jsonl,val,500,0.926,0.828,0.8474243713777941,0.0,0.3532523243993055,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-4b-instruct_refcocog_test,Qwen/Qwen3-VL-4B-Instruct,,data/refcocog/test.jsonl,val,500,0.858,0.784,0.801450067407158,0.0,0.4097221653994638,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-4b-instruct_refcocog_val,Qwen/Qwen3-VL-4B-Instruct,,data/refcocog/val.jsonl,val,500,0.884,0.806,0.8160050531972688,0.0,0.4029749962000642,640x416,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcoco_plus_testA,Qwen/Qwen3-VL-8B-Instruct,,data/refcoco_plus/testA.jsonl,val,500,0.904,0.82,0.8339300865808356,0.0,0.3720576564006042,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcoco_plus_testB,Qwen/Qwen3-VL-8B-Instruct,,data/refcoco_plus/testB.jsonl,val,500,0.798,0.72,0.7450648497463894,0.002,0.40353182720008773,416x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcoco_plus_val,Qwen/Qwen3-VL-8B-Instruct,,data/refcoco_plus/val.jsonl,val,500,0.868,0.774,0.7936746454771048,0.0,0.38881108919985125,480x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcoco_testA,Qwen/Qwen3-VL-8B-Instruct,,data/refcoco/testA.jsonl,val,500,0.916,0.84,0.8493116509902949,0.002,0.3915527296001092,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcoco_testB,Qwen/Qwen3-VL-8B-Instruct,,data/refcoco/testB.jsonl,val,500,0.884,0.774,0.8067232658298397,0.002,0.38819428319996224,416x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcoco_val,Qwen/Qwen3-VL-8B-Instruct,,data/refcoco/val.jsonl,val,500,0.922,0.842,0.8518589778103739,0.0,0.3837665932003874,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcocog_test,Qwen/Qwen3-VL-8B-Instruct,,data/refcocog/test.jsonl,val,500,0.878,0.78,0.8094328238700698,0.0,0.4330815652002348,448x640,relative_1000,False,json,,,0.0,128,bf16,p0
+p0_qwen3-vl-8b-instruct_refcocog_val,Qwen/Qwen3-VL-8B-Instruct,,data/refcocog/val.jsonl,val,500,0.878,0.782,0.8068561212789669,0.004,0.43285723979969043,640x416,relative_1000,False,json,,,0.0,128,bf16,p0

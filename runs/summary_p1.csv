@@ -1,0 +1,13 @@
+run,model,adapter,dataset,split,n,acc@0.5,acc@0.75,mean_iou,parse_fail_rate,sec_per_sample,input_hw,coord_mode,thinking,prompt,max_pixels,min_pixels,temperature,max_new_tokens,dtype,tag
+p1_qwen2.5-vl-7b-instruct_dior_test,Qwen/Qwen2.5-VL-7B-Instruct,,data/dior_rsvg/test.jsonl,val,500,0.416,0.23,0.4046182206300164,0.0,0.6149874361993279,812x812,absolute_input,False,json,,,0.0,128,bf16,p1
+p1_qwen2.5-vl-7b-instruct_refcoco_val,Qwen/Qwen2.5-VL-7B-Instruct,,data/refcoco/val.jsonl,val,500,0.9,0.8,0.819805554397707,0.0,0.49481292799976656,448x644,absolute_input,False,json,,,0.0,128,bf16,p1
+p1_qwen2.5-vl-7b-instruct_screenspot,Qwen/Qwen2.5-VL-7B-Instruct,,data/screenspot/test.jsonl,val,500,0.266,0.13,0.32987770509320147,0.022,2.514556829400128,2520x1176,absolute_input,False,json,,,0.0,128,bf16,p1
+p1_qwen3-vl-4b-instruct_dior_test,Qwen/Qwen3-VL-4B-Instruct,,data/dior_rsvg/test.jsonl,val,500,0.536,0.354,0.5077785299218907,0.0,0.39358206940011586,800x800,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3-vl-4b-instruct_refcoco_val,Qwen/Qwen3-VL-4B-Instruct,,data/refcoco/val.jsonl,val,500,0.924,0.824,0.8455843364785497,0.0,0.6713455460013356,448x640,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3-vl-4b-instruct_screenspot,Qwen/Qwen3-VL-4B-Instruct,,data/screenspot/test.jsonl,val,500,0.56,0.36,0.5252452933138262,0.1,1.1756642803995638,2528x1184,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3-vl-8b-instruct_dior_test,Qwen/Qwen3-VL-8B-Instruct,,data/dior_rsvg/test.jsonl,val,500,0.558,0.38,0.5181034585443998,0.004,0.7954421244012192,800x800,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3-vl-8b-instruct_refcoco_val,Qwen/Qwen3-VL-8B-Instruct,,data/refcoco/val.jsonl,val,500,0.922,0.838,0.8520150600519824,0.0,0.6982811753998976,448x640,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3-vl-8b-instruct_screenspot,Qwen/Qwen3-VL-8B-Instruct,,data/screenspot/test.jsonl,val,500,0.578,0.346,0.5377083567992156,0.076,2.0160363897997886,2528x1184,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3.5-9b_dior_test,Qwen/Qwen3.5-9B,,data/dior_rsvg/test.jsonl,val,500,0.572,0.414,0.5294263758748753,0.0,1.1341868065994931,800x800,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3.5-9b_refcoco_val,Qwen/Qwen3.5-9B,,data/refcoco/val.jsonl,val,500,0.924,0.838,0.855079086737113,0.0,0.9302136521999491,448x640,relative_1000,False,json,,,0.0,128,bf16,p1
+p1_qwen3.5-9b_screenspot,Qwen/Qwen3.5-9B,,data/screenspot/test.jsonl,val,500,0.616,0.378,0.5639050390887435,0.0,4.1223752839996015,2528x1184,relative_1000,False,json,,,0.0,128,bf16,p1

@@ -12,7 +12,7 @@
     "id_field": null,
     "model": "Qwen/Qwen3-VL-4B-Instruct",
     "adapter": null,
-    "merge_adapter": false,
+    "merge_adapter": true,
     "dtype": "bf16",
     "attn": "sdpa",
     "min_pixels": null,
@@ -25,7 +25,7 @@
     "top_k": 0,
     "repetition_penalty": 1.0,
     "enable_thinking": "auto",
-    "batch_size": 4,
+    "batch_size": 2,
     "coord_mode": "auto",
     "calib_n": 32,
     "out": "runs/p1_qwen3-vl-4b-instruct_dior_test",
@@ -47,6 +47,16 @@
   },
   "max_new_tokens": 128,
   "thinking": false,
+  "model_input": {
+    "min_pixels": 640000,
+    "median_pixels": 640000,
+    "max_pixels": 640000,
+    "median_hw": [
+      800,
+      800
+    ]
+  },
+  "transformers_version": "5.22.1",
   "summary": {
     "n": 500,
     "acc@0.5": 0.536,
@@ -105,5 +115,5 @@
       }
     }
   },
-  "finished_at": "2026-11-02 18:41:56"
+  "finished_at": "2026-11-03 20:22:15"
 }
