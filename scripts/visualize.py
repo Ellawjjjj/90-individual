@@ -28,6 +28,9 @@ def parse_args():
     p.add_argument("--run", required=True)
     p.add_argument("--compare", nargs="*", default=[], help="other run dirs evaluated on the same samples")
     p.add_argument("--ids", nargs="*", default=None, help="only these sample ids")
+    p.add_argument("--select", default="worst", choices=["worst", "fixed", "broken", "random"],
+                   help="with --compare: worst = lowest base IoU; fixed = base wrong & first compared run right; "
+                        "broken = base right & first compared run wrong (regressions); random = random shared ids")
     p.add_argument("--n-good", type=int, default=8)
     p.add_argument("--n-bad", type=int, default=16)
     p.add_argument("--cols", type=int, default=4)
@@ -81,8 +84,25 @@ def main():
     # --- comparison mode: one row per sample, one column per run
     if args.compare:
         others = [(Path(c).name, load_run(Path(c))[1]) for c in args.compare]
-        tiles = []
-        chosen = recs if args.ids else sorted(recs, key=lambda r: r["iou"])[: args.n_bad]
+        first = others[0][1]
+        if args.ids:
+            chosen = recs
+        elif args.select == "worst":            # hardest cases for the base run
+            chosen = sorted(recs, key=lambda r: r["iou"])[: args.n_bad]
+        elif args.select == "fixed":            # base wrong -> first compared run right
+            chosen = [r for r in recs if not r["hit"] and r["id"] in first and first[r["id"]]["hit"]]
+            chosen = sorted(chosen, key=lambda r: -(first[r["id"]]["iou"] - r["iou"]))[: args.n_bad]
+        elif args.select == "broken":           # base right -> first compared run wrong (regressions)
+            chosen = [r for r in recs if r["hit"] and r["id"] in first and not first[r["id"]]["hit"]]
+            chosen = sorted(chosen, key=lambda r: -(r["iou"] - first[r["id"]]["iou"]))[: args.n_bad]
+        else:                                   # random sample of shared ids
+            import random
+
+            pool = [r for r in recs if r["id"] in first]
+            chosen = random.Random(0).sample(pool, min(args.n_bad, len(pool)))
+        n_fixed = sum(1 for r in recs if not r["hit"] and r["id"] in first and first[r["id"]]["hit"])
+        n_broken = sum(1 for r in recs if r["hit"] and r["id"] in first and not first[r["id"]]["hit"])
+        print(f"{run.name} -> {others[0][0]}: fixed={n_fixed} broken={n_broken} (showing select={args.select})")
         for r in chosen:
             s = samples[r["id"]]
             img = s.load_image()
@@ -94,8 +114,9 @@ def main():
                 o["category"] = failure_category(o)
                 tiles.append(draw_case(img, o["gt"], o.get("pred"), caption_for(o, name), args.max_side))
         grid = make_grid(tiles, cols=1 + len(others))
-        grid.save(vis / "compare.jpg", quality=90)
-        print("wrote", vis / "compare.jpg")
+        out_name = "compare.jpg" if args.select == "worst" else f"compare_{args.select}.jpg"
+        grid.save(vis / out_name, quality=90)
+        print("wrote", vis / out_name)
         return
 
     # --- good cases
