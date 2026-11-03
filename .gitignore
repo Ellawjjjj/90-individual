@@ -5,12 +5,26 @@ __pycache__/
 venv/
 .idea/
 .vscode/
-# data and run outputs are large; keep the folders, not the contents
+# datasets are large; keep the folder only
 data/*
 !data/.gitkeep
+# run outputs: keep small summaries (metrics, tables, paired tests), drop raw outputs and weights
 runs/*
 !runs/.gitkeep
+!runs/*.md
+!runs/*.csv
+!runs/*.txt
+!runs/*/
+runs/*/raw.jsonl
+runs/*/predictions.jsonl
+runs/*/trainer/
+runs/*/adapter/
+runs/*/vis/
+!runs/*/metrics.json
+!runs/*/train_info.json
+# images: only report figures under docs/figures
 *.jpg
 *.png
-!docs/*.png
+!docs/figures/*.jpg
+!docs/figures/*.png
 hf_cache/
