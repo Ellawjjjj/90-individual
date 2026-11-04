@@ -190,17 +190,32 @@ All ablations fine-tune Qwen3-VL-4B-Instruct on DIOR-RSVG training data and eval
 
 **Good cases.** On RefCOCO (`figures/refcoco_good.jpg`) predictions are tight (IoU > 0.9) even for expressions that combine attributes and relations ("white pot upper right corner"). The same holds on DIOR-RSVG whenever the target is a *large, unique* structure — a bridge, a running track, an airport runway, a tennis court (`figures/dior_good.jpg`, all IoU ≥ 0.98) — and the model handles colour attributes and even a two-object relation correctly when both objects are large ("the ground track field on the upper right of the baseball field on the lower left"). The zero-shot model therefore does *see* remote-sensing imagery well; what it fails at is selection among many similar small objects.
 
+![Figure 4](figures/dior_good.jpg)
+*Figure 4. Good cases on DIOR-RSVG (Qwen3-VL-8B, zero-shot): large, unique structures are localised with IoU ≥ 0.98. Green = ground truth, red = prediction.*
+
 **Failure modes on DIOR-RSVG.** Inspecting the lowest-IoU zero-shot cases and the LoRA before/after grids (`figures/dior_lora_fixed.jpg`, `figures/dior_lora_broken.jpg`) reveals three recurring patterns:
 
 1. *Reference-object confusion.* DIOR-RSVG expressions are often relational templates ("the overpass that is similar in size to the overpass in the middle"). The zero-shot model frequently boxes the *reference* ("the overpass in the middle") instead of the target. This is the pattern the LLM adapter fixes most often (104 of the 230 zero-shot errors become correct).
 2. *Same-category instance selection.* In a row of identical airplanes or a pair of chimneys, only the spatial clause distinguishes the target. Zero-shot and LLM-LoRA both swap instances; the all-scope adapter resolves several of these (e.g. "the chimney in the middle", IoU 0.96).
 3. *Very small targets.* Vehicles and windmills a few tens of pixels wide are missed or loosely boxed by every configuration; this is the bucket where resolution (Section 4.3) and vision-side adaptation help, and where accuracy remains lowest (58.7 at best).
 
+![Figure 5](figures/dior_lora_fixed_top4.jpg)
+*Figure 5. DIOR-RSVG cases that the LLM-LoRA adapter fixes (first four of 104). Columns: zero-shot, LoRA-LLM, LoRA-all. The zero-shot model boxes the reference object of a relational expression or a same-category neighbour. Full grid: `figures/dior_lora_fixed.jpg`.*
+
 **Regressions after adaptation.** Fine-tuning is not monotone: the LLM adapter breaks 13 samples that the zero-shot model had right. Almost all are instance swaps on nested relational expressions ("the chimney on the right of the chimney on the left"), where the adapted model over-corrects from "box the reference" to "box the wrong side". Six of the eight regressions shown in `dior_lora_broken.jpg` are recovered by the all-scope adapter, consistent with its higher Acc@0.75 and symmetric flip counts.
+
+![Figure 6](figures/dior_lora_broken_top4.jpg)
+*Figure 6. Regressions: zero-shot correct, LLM-LoRA wrong (first four of 13). Most are instance swaps on nested relational expressions; the all-scope adapter (right column) recovers most of them. Full grid: `figures/dior_lora_broken.jpg`.*
 
 **GUI screenshots.** Besides the refusals discussed in Section 4.3, the ScreenSpot errors of Qwen3-VL-8B (`figures/screenspot_bad.jpg`) fall into three kinds. *Semantic neighbours:* for "open account protection" the model boxes the *Sign in* button inside the Account-protection panel rather than the sidebar entry of that name; for "take a photo to insert into the memo" it boxes the camera toolbar button that opens the menu rather than the *Take Photo* item inside it — in both cases a defensible action, but not the annotated element. *Adjacent look-alike icons:* "rotate left" is answered with the flip icon next to the rotate icon. *Tiny targets in very large images:* "finder" is answered with a desktop folder instead of the Finder icon in the dock of a 2528×1184 screenshot. The first kind is specific to GUIs, where an instruction can map to several plausible elements; the other two are the same instance-selection and small-target failures seen on DIOR-RSVG.
 
+![Figure 7](figures/screenspot_bad.jpg)
+*Figure 7. ScreenSpot failures of Qwen3-VL-8B: semantic neighbour ("open account protection" → Sign in; "take a photo…" → camera button instead of the menu item), adjacent look-alike icon ("rotate left" → flip), tiny target ("finder" → desktop folder instead of the dock icon).*
+
 **Cross-generation comparison.** `figures/generations_refcoco.jpg` and `generations_dior.jpg` show the ten lowest-IoU samples of Qwen3-VL-8B next to the answers of Qwen2.5-VL-7B and Qwen3.5-9B on the same images. Because the samples are selected on the 8B model's failures, the other models sometimes succeed on them (on RefCOCO, "person w/ black bag on back and rolling" is boxed correctly by both other models while 8B picks the neighbouring person); the paired counts put this in proportion — relative to Qwen3-VL-8B, Qwen2.5-VL-7B fixes 15 RefCOCO samples but breaks 26, and on DIOR-RSVG fixes 23 but breaks 94. On DIOR-RSVG the hard cases are genuinely shared: for a relational expression over a dense urban scene ("the bridge on the upper right of the blue expressway toll station on the left") all three models box different wrong regions, and for a vehicle "on the upper right of the baseball field" all three choose a different small vehicle. Newer generations shift a minority of the hard cases; the very small, relationally described targets remain unsolved by every model.
+
+![Figure 8](figures/generations_dior_top3.jpg)
+*Figure 8. The hardest DIOR-RSVG cases of Qwen3-VL-8B (left) with the answers of Qwen2.5-VL-7B (middle) and Qwen3.5-9B (right) on the same images (first three of ten). Full grids: `figures/generations_dior.jpg`, `figures/generations_refcoco.jpg`.*
 
 ### 4.6 Advantages and disadvantages
 
