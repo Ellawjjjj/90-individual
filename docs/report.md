@@ -136,7 +136,7 @@ ScreenSpot is difficult for different reasons than DIOR-RSVG. The screenshots ar
 ![Figure 1](figures/fig_resolution.png)
 *Figure 1. Acc@0.5 against input resolution on DIOR-RSVG, for all targets, small targets and expressions with spatial words.*
 
-**Model size.** The 8B model is not more accurate than the 4B model on any of the three datasets (Table 1 and Table 3). It produces slightly tighter boxes on RefCOCO (Acc@0.75 84.2 vs. 82.8) and fewer unanswered ScreenSpot instructions.
+**Model size.** The 8B model is not more accurate than the 4B model on any of the three datasets (Table 1 and Table 3). On RefCOCO val the two models disagree on only 30 of 500 samples, split 16 to 14 (p = 0.86). It produces slightly tighter boxes on RefCOCO (Acc@0.75 84.2 vs. 82.8) and fewer unanswered ScreenSpot instructions.
 
 **Generation budget.** All runs use greedy decoding with at most 128 new tokens. We first suspected that the missing answers on ScreenSpot were cut off by this limit, so we re-ran the 4B model with 512 tokens. The results did not change at all: same accuracy, no sample changed its outcome. Reading the 50 unanswered cases explained why. Every one of them is a refusal, such as "There are none." or "There is no object matching the query in the image.", given for instructions like "file processing", "adjust the volume", "check my apple id" and "siri". These instructions name what a UI element does rather than what it looks like, and Qwen3-VL treats them as descriptions of objects that are not in the picture. Qwen2.5-VL refuses in 2.2% of cases and Qwen3.5 never does, so the behaviour comes from how each checkpoint was trained. Refusals account for roughly half of the 5.6-point gap between Qwen3-VL-4B and Qwen3.5-9B on ScreenSpot. We did not try other prompt wordings; a prompt that asks the model to always return a box would be a natural next experiment.
 
@@ -160,7 +160,7 @@ The architectural components of Qwen3-VL, such as DeepStack and MRoPE, cannot be
 
 **(b) Rank.** With the language-model scope, ranks 4, 16 and 64 reach 67.0, 72.2 and 73.8. Going from 4 to 16 is a significant improvement (+5.2, p = 0.0001). Going from 16 to 64 adds 1.6 points, which is not significant, while the number of adapter parameters grows from 33 M to 132 M.
 
-**(c) Training data and training steps.** Training on 300, 1,000 and 3,000 samples for one epoch gives 61.0, 61.4 and 72.4. At first this looks like more data helps, but with one epoch, three times the data also means three times the optimiser steps. To separate the two, we trained on 1,000 samples for three epochs, which gives the same 375 steps as 3,000 samples for one epoch. This run reaches 70.2, 8.8 points above one epoch on the same data (p < 0.0001) and only 2.0 points below the 3,000-sample run, a difference that is not significant (p = 0.16). Training on 3,000 samples for three epochs (1,125 steps) gives the best result in the study, 75.4. Table 6 and Figure 3 summarise these runs. In our range, more training steps help much more than more data.
+**(c) Training data and training steps.** Training on 300, 1,000 and 3,000 samples for one epoch gives 61.0, 61.4 and 72.4. At first this looks like more data helps, but with one epoch, three times the data also means three times the optimiser steps. To separate the two, we trained on 1,000 samples for three epochs, which gives the same 375 steps as 3,000 samples for one epoch. This run reaches 70.2, 8.8 points above one epoch on the same data (p < 0.0001) and only 2.0 points below the 3,000-sample run, a difference that is not significant (p = 0.16). Training on 3,000 samples for three epochs (1,125 steps) gives the best result in the study, 75.4, a significant gain over one epoch (+3.0 to +3.2 depending on the reference run, p < 0.05). Table 6 and Figure 3 summarise these runs. In our range, more training steps help much more than more data. The training loss suggests where this stops: the 1,000-sample run trained for three epochs ends with a lower training loss than the 3,000-sample run trained for one (0.25 vs. 0.29) but scores two points lower on the test set, so repeated passes over a small set start to fit the training data rather than the task. More data becomes useful once the number of steps is large enough.
 
 **Table 6.** Training data and steps (LLM scope, rank 16, DIOR-RSVG test).
 
@@ -186,29 +186,34 @@ The architectural components of Qwen3-VL, such as DeepStack and MRoPE, cannot be
 ![Figure 4](figures/dior_good.jpg)
 *Figure 4. Good cases on DIOR-RSVG (Qwen3-VL-8B, zero-shot). Green: ground truth. Red: prediction.*
 
+**Failure cases on RefCOCO.** The lowest-scoring RefCOCO samples look different from the DIOR-RSVG ones (`figures/refcoco_bad_wrong_object.jpg`). Several are ambiguous or noisy annotations rather than model errors. For "white cup" there are at least two white containers on the table. For "person w/black bag on back and rolling" the model picks a woman who has a backpack and is pulling a rolling suitcase, which fits the description as well as the annotated person does. "Brown cow's white tail" is annotated on a black cow with a white tail, and "guy with red hat blue coolar" contains a typo. The clearer model errors involve counting, as in "third lane in red and white bus", where the model picks the second of two similar trams. At 92% accuracy, a noticeable part of the remaining error on RefCOCO comes from the labels.
+
+![Figure 5](figures/refcoco_bad_wrong_object.jpg)
+*Figure 5. Lowest-scoring RefCOCO samples of Qwen3-VL-8B. Several are ambiguous ("white cup") or mislabelled ("brown cow's white tail").*
+
 **Failure cases on DIOR-RSVG.** Looking through the lowest-scoring zero-shot predictions and the before/after comparison for the LoRA adapters, three kinds of errors come up repeatedly.
 
-1. Boxing the reference object. Many DIOR-RSVG expressions describe a target relative to another object, for example "the overpass that is similar in size to the overpass in the middle". The zero-shot model often returns the box of the object used as the reference. This is the error the language-model adapter fixes most often (Figure 5).
+1. Boxing the reference object. Many DIOR-RSVG expressions describe a target relative to another object, for example "the overpass that is similar in size to the overpass in the middle". The zero-shot model often returns the box of the object used as the reference. This is the error the language-model adapter fixes most often (Figure 6).
 2. Picking the wrong instance. In a row of identical airplanes or a pair of chimneys, only the spatial phrase identifies the target, and the model often picks a neighbour.
 3. Very small targets. Vehicles and wind turbines a few tens of pixels wide are often missed by every configuration. This subgroup gains the most from higher resolution and from adapting the vision encoder, and it still has the lowest accuracy (58.7 at best).
 
-![Figure 5](figures/dior_lora_fixed_top4.jpg)
-*Figure 5. DIOR-RSVG samples fixed by the LLM adapter (4 of 104). Columns: zero-shot, LLM adapter, all-scope adapter. Full grid in figures/dior_lora_fixed.jpg.*
+![Figure 6](figures/dior_lora_fixed_top4.jpg)
+*Figure 6. DIOR-RSVG samples fixed by the LLM adapter (4 of 104). Columns: zero-shot, LLM adapter, all-scope adapter. Full grid in figures/dior_lora_fixed.jpg.*
 
-**Samples broken by adaptation.** The language-model adapter turns 13 correct zero-shot answers into wrong ones. Most of them are nested relations such as "the chimney on the right of the chimney on the left", where the adapted model now picks the wrong side. The all-scope adapter gets six of the eight examples in Figure 6 right again, which fits its higher Acc@0.75.
+**Samples broken by adaptation.** The language-model adapter turns 13 correct zero-shot answers into wrong ones. Most of them are nested relations such as "the chimney on the right of the chimney on the left", where the adapted model now picks the wrong side. The all-scope adapter gets six of the eight examples in Figure 7 right again, which fits its higher Acc@0.75.
 
-![Figure 6](figures/dior_lora_broken_top4.jpg)
-*Figure 6. Samples that the zero-shot model gets right and the LLM adapter gets wrong (4 of 13). The right column shows the all-scope adapter. Full grid in figures/dior_lora_broken.jpg.*
+![Figure 7](figures/dior_lora_broken_top4.jpg)
+*Figure 7. Samples that the zero-shot model gets right and the LLM adapter gets wrong (4 of 13). The right column shows the all-scope adapter. Full grid in figures/dior_lora_broken.jpg.*
 
-**Failure cases on ScreenSpot.** Apart from the refusals described in Section 4.3, the ScreenSpot errors of Qwen3-VL-8B fall into three groups (Figure 7). In some cases the model picks a related element: for "open account protection" it boxes the Sign in button inside the account protection panel instead of the sidebar entry, and for "take a photo to insert into the memo" it boxes the camera button that opens the menu instead of the Take Photo item. In others it picks a neighbouring icon that looks similar, such as the flip icon for "rotate left". And for very small targets it may choose the wrong object altogether, such as a desktop folder instead of the Finder icon in the dock. The first group is specific to interfaces, where an instruction can reasonably match more than one element. The other two are the same instance and size problems seen on DIOR-RSVG.
+**Failure cases on ScreenSpot.** Apart from the refusals described in Section 4.3, the ScreenSpot errors of Qwen3-VL-8B fall into three groups (Figure 8). In some cases the model picks a related element: for "open account protection" it boxes the Sign in button inside the account protection panel instead of the sidebar entry, and for "take a photo to insert into the memo" it boxes the camera button that opens the menu instead of the Take Photo item. In others it picks a neighbouring icon that looks similar, such as the flip icon for "rotate left". And for very small targets it may choose the wrong object altogether, such as a desktop folder instead of the Finder icon in the dock. The first group is specific to interfaces, where an instruction can reasonably match more than one element. The other two are the same instance and size problems seen on DIOR-RSVG.
 
-![Figure 7](figures/screenspot_bad.jpg)
-*Figure 7. ScreenSpot errors of Qwen3-VL-8B. From left: related element, related element, similar neighbouring icon, very small target.*
+![Figure 8](figures/screenspot_bad.jpg)
+*Figure 8. ScreenSpot errors of Qwen3-VL-8B. From left: related element, related element, similar neighbouring icon, very small target.*
 
-**Comparing generations on the same samples.** Figure 8 takes the hardest DIOR-RSVG samples for Qwen3-VL-8B and shows what Qwen2.5-VL-7B and Qwen3.5-9B predict on the same images (the RefCOCO version is in `figures/generations_refcoco.jpg`). Since the samples are chosen as failures of the 8B model, the other models sometimes get them right. Overall, though, Qwen2.5-VL fixes 23 of the 8B model's DIOR-RSVG errors and makes 94 new ones. Some samples are hard for all three models: for "the bridge on the upper right of the blue expressway toll station on the left" each model boxes a different wrong region, and for a vehicle "on the upper right of the baseball field" each picks a different small vehicle.
+**Comparing generations on the same samples.** Figure 9 takes the hardest DIOR-RSVG samples for Qwen3-VL-8B and shows what Qwen2.5-VL-7B and Qwen3.5-9B predict on the same images (the RefCOCO version is in `figures/generations_refcoco.jpg`). Since the samples are chosen as failures of the 8B model, the other models sometimes get them right. Overall, though, Qwen2.5-VL fixes 23 of the 8B model's DIOR-RSVG errors and makes 94 new ones. Some samples are hard for all three models: for "the bridge on the upper right of the blue expressway toll station on the left" each model boxes a different wrong region, and for a vehicle "on the upper right of the baseball field" each picks a different small vehicle.
 
-![Figure 8](figures/generations_dior_top3.jpg)
-*Figure 8. Hardest DIOR-RSVG samples for Qwen3-VL-8B (left), with the predictions of Qwen2.5-VL-7B (middle) and Qwen3.5-9B (right). Full grids in figures/generations_dior.jpg and figures/generations_refcoco.jpg.*
+![Figure 9](figures/generations_dior_top3.jpg)
+*Figure 9. Hardest DIOR-RSVG samples for Qwen3-VL-8B (left), with the predictions of Qwen2.5-VL-7B (middle) and Qwen3.5-9B (right). Full grids in figures/generations_dior.jpg and figures/generations_refcoco.jpg.*
 
 ### 4.6 Advantages and disadvantages
 
